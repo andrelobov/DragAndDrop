@@ -6,142 +6,186 @@
 <title>Atividade – Arrastar para Completar</title>
 <style>
 :root{
-  --bg:#0f172a; --card:#111827; --muted:#1f2937;
-  --text:#e5e7eb; --text-dim:#9ca3af; --primary:#22d3ee;
-  --ok:#34d399; --err:#f87171; --warn:#f59e0b;
+  --bg:#0f172a; --card:#111827; --muted:#1f2937; --text:#e5e7eb;
+  --text-dim:#9ca3af; --primary:#22d3ee; --ok:#34d399; --err:#f87171; --warn:#f59e0b;
 }
 *{box-sizing:border-box}
-html,body{height:100%; margin:0; font-family:system-ui,sans-serif;}
+html,body{height:100%}
 body{
-  background:radial-gradient(1200px 800px at 80% -10%, #0ea5e910, transparent 60%),var(--bg);
+  margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica, Arial;
+  background: radial-gradient(1200px 800px at 80% -10%, #0ea5e910, transparent 60%),var(--bg);
   color:var(--text); display:flex; align-items:center; justify-content:center; padding:24px;
 }
-.app{width:min(980px,100%);}
+.app{width:min(980px,100%)}
 .card{
-  background:linear-gradient(180deg, #0b1222 0%, #0b1222 60%, #0a0f1a 100%);
+  background: linear-gradient(180deg,#0b1222 0%,#0b1222 60%,#0a0f1a 100%);
   border:1px solid #1f2a44; border-radius:20px; padding:24px; box-shadow:0 10px 30px #0008;
 }
 header{display:flex; gap:12px; align-items:center; justify-content:space-between; margin-bottom:12px}
 h1{font-size:20px; margin:0; letter-spacing:.2px; font-weight:700}
 .pill{font-size:12px; padding:6px 10px; border-radius:999px; border:1px solid #2b3758; background:#0a1224; color:var(--text-dim)}
 .prompt{font-size:18px; line-height:1.6; padding:16px; background:var(--card); border:1px solid #1f2a44; border-radius:14px}
-.blank{display:inline-flex; min-width:110px; min-height:34px; padding:4px 10px; margin:0 4px; border-radius:10px; border:1px dashed #334155; background:#0b1222; align-items:center; justify-content:center}
+.blank{display:inline-flex; min-width:110px; min-height:34px; padding:4px 10px; margin:0 4px; border-radius:10px; border:1px dashed #334155; background:#0b1222; vertical-align:baseline; align-items:center; justify-content:center}
 .blank.filled{border-style:solid; border-color:#334155; background:#0e152b}
-.blank.correct{border-color: #1f5137; background:#0c1f17; box-shadow: inset 0 0 0 9999px #00ff5a10}
-.blank.wrong{border-color: #5b1f2a; background:#1a0c11; box-shadow: inset 0 0 0 9999px #ff003310}
+.blank.correct{border-color:#1f5137; background:#0c1f17; box-shadow: inset 0 0 0 9999px #00ff5a10}
+.blank.wrong{border-color:#5b1f2a; background:#1a0c11; box-shadow: inset 0 0 0 9999px #ff003310}
 .pool{margin-top:16px; display:flex; flex-wrap:wrap; gap:10px; padding:12px; background:var(--card); border:1px solid #1f2a44; border-radius:14px; min-height:64px}
-.token{user-select:none; cursor:grab; padding:8px 12px; border-radius:999px; background:#0b1a2e; border:1px solid #1f2a44; color:var(--text); font-weight:600; letter-spacing:.2px}
+.token{user-select:none; cursor:grab; padding:8px 12px; border-radius:999px; background:#0b1a2e; border:1px solid #1f2a44; color:var(--text); box-shadow:0 4px 10px #0006; font-weight:600; letter-spacing:.2px}
 .token:active{cursor:grabbing}
 .token[aria-grabbed="true"]{outline:2px dashed var(--primary)}
 .toolbar{margin-top:16px; display:flex; flex-wrap:wrap; gap:8px; align-items:center}
 button{background:#0b1a2e; color:var(--text); border:1px solid #1f2a44; padding:10px 14px; border-radius:12px; cursor:pointer; font-weight:600}
-button.primary{background:linear-gradient(90deg, #0ea5e9 0%, #06b6d4 100%); color:#001018; border:none}
+button.primary{background:linear-gradient(90deg,#0ea5e9 0%,#06b6d4 100%); color:#001018; border:none}
 button:disabled{opacity:.6; cursor:not-allowed}
 .stats{margin-left:auto; display:flex; gap:10px}
 .stat{padding:6px 10px; border-radius:10px; background:#091427; border:1px solid #1f2a44; font-size:12px}
 .feedback{margin-top:12px; font-size:14px; color:var(--text-dim)}
 .success{color:var(--ok)}.error{color:var(--err)}.hint{color:var(--warn)}
 .nav{display:flex; gap:8px; margin-top:10px}
+@media(max-width:640px){.blank{min-width:80px}.prompt{font-size:17px}.token{padding:10px 12px}}
 </style>
 </head>
 <body>
 <div class="app">
-<div class="card">
-<header>
-<h1>Analise a frase e complete as lacunas com as palavras do box abaixo:</h1>
-<div class="pill" id="progressPill">Pergunta 1/1</div>
-</header>
-<div id="prompt" class="prompt" aria-live="polite"></div>
-<div id="pool" class="pool" aria-label="Banco de palavras"></div>
-<div class="toolbar">
-<button class="primary" id="checkBtn">Conferir</button>
-<button id="hintBtn">Dica</button>
-<button id="resetBtn">Limpar</button>
-<button id="shuffleBtn">Embaralhar</button>
-<div class="stats">
-<div class="stat" id="scoreStat">Pontuação: 0</div>
-<div class="stat" id="accStat">Acertos: 0/0</div>
-</div>
-</div>
-<div class="nav">
-<button id="prevBtn">◀️ Anterior</button>
-<button id="nextBtn">Próxima ▶️</button>
-</div>
-<div id="feedback" class="feedback" aria-live="polite"></div>
-</div>
+  <div class="card">
+    <header>
+      <h1>Analise a frase e complete as lacunas:</h1>
+      <div class="pill" id="progressPill">Pergunta 1/1</div>
+    </header>
+    <div id="prompt" class="prompt" aria-live="polite"></div>
+    <div id="pool" class="pool" aria-label="Banco de palavras"></div>
+    <div class="toolbar">
+      <button class="primary" id="checkBtn">Conferir</button>
+      <button id="hintBtn">Dica</button>
+      <button id="resetBtn">Limpar</button>
+      <button id="shuffleBtn">Embaralhar</button>
+      <div class="stats">
+        <div class="stat" id="scoreStat">Pontuação: 0</div>
+        <div class="stat" id="accStat">Acertos: 0/0</div>
+      </div>
+    </div>
+    <div class="nav">
+      <button id="prevBtn">◀️ Anterior</button>
+      <button id="nextBtn">Próxima ▶️</button>
+    </div>
+    <div id="feedback" class="feedback" aria-live="polite"></div>
+  </div>
 </div>
 
 <script>
+// ====== CONFIGURÁVEL ======
 const QUESTIONS = [
-{
-  text: "Ao emitir uma mensagem para expressar seu [[propósito]], o emissor tem várias opções de [[escolha]], e ao mesmo tempo várias [[decisões]] a tomar. Para [[codificar]] a mensagem, por exemplo, ele pode escolher entre a língua portuguesa e a linguagem de sinais, e dentro desses códigos, escolher um ou outro elemento. Em relação ao [[conteúdo]], para falar de um determinado assunto, ele pode escolher entre uma ou outra informação ou [[evidência]]. O emissor pode, para além dessas escolhas, repetir uma parte da [[mensagem]], resumir tudo no final, ou simplesmente não [[expressar]] uma parte da mensagem, deixando para o [[receptor]] completar a informação, se ele assim desejar.",
-  distractors: ["elemento","assunto","informação"]
-},
-{
-  text: "Na Teoria da Comunicação, o [[tratamento]] da mensagem diz respeito às decisões tomadas pelo emissor ao selecionar e [[estruturar]] os códigos e o conteúdo da comunicação. Um jornalista, por exemplo, quando escreve uma matéria para um [[jornal]], seleciona o conteúdo que ele entende ser interessante para os [[leitores]], escolhe as [[palavras]] que acredita que o leitor vai entender, e estrutura suas [[afirmações]] na forma que imagina que o leitor vai gostar de receber. Da mesma forma um [[publicitário]], quando vai preparar uma peça (um cartaz), se vê obrigado a selecionar o conteúdo que deve ser trabalhado, definir o código que vai usar e a forma de expressar a mensagem.",
-  distractors: ["comunicação","mensagem","código"]
-},
-{
-  text: "Entre as bases que influenciam as decisões do emissor no tratamento da mensagem está, em primeiro lugar, a [[personalidade]], as características individuais do emissor. Cada um de nós tem [[normas]] de codificação que nos são características, cada um vai estruturar os elementos da mensagem da forma como lhe fica melhor em [[juízo]]. Além disso, nossas [[habilidades]] de comunicação, nossas [[atitudes]], nossos conhecimentos, nossa cultura e nossa posição [[social]] também vão ditar algumas decisões. É por isso que às vezes, diante de um texto, um cartaz, uma peça [[publicitária]], concluímos que “tal [[estilo]] nos remete à tal [[pessoa]]”, porque conseguimos identificar o [[emissor]] por meio da mensagem que ele cria, por conta do seu estilo.",
-  distractors: ["tratamento","mensagem","características"]
-},
-{
-  text: "Mas outro fator de extrema importância nas tomadas de decisão com relação ao tratamento da mensagem é o [[receptor]]. Todo [[emissor]] com um propósito de comunicar transmite uma mensagem esperando uma [[resposta]] do receptor, que ele aceite ou faça algo. Como emissores precisamos nos ater a [[presença]] constante do receptor, escolhendo [[códigos]] que ele entenda, selecionando elementos que vão chamar a sua [[atenção]], que lhe sejam fáceis de [[decodificar]], conteúdos que lhe sejam interessantes e [[relevantes]], e estruturamos a mensagem buscando [[reduzir]] ao máximo o esforço para decodificar e interpretar a mensagem. Tudo isso porque temos um propósito a comunicar, e esperamos que o receptor responda à mensagem de forma [[correspondente]]!!",
-  distractors: ["importância","decisões","mensagem"]
-}];
+  {text:"Ao emitir uma mensagem para expressar seu [[propósito]], o emissor tem várias opções de [[escolha]], e ao mesmo tempo várias [[decisões]] a tomar. Para [[codificar]] a mensagem, ele pode escolher entre a língua portuguesa e a linguagem de sinais, e dentro desses códigos, escolher um ou outro elemento. Em relação ao [[conteúdo]], pode escolher entre informações ou [[evidência]]. O emissor pode repetir, resumir ou não [[expressar]] uma parte, deixando para o [[receptor]] completar.", distractors:["elemento","assunto","informação"]}
+];
+const POINTS_PER_QUESTION = 0.5;
+const STORAGE_KEY = "dragfill_progress_v1";
 
-const POINTS_PER_QUESTION=0.5;
-let state={index:0,score:0,attempts:0,correctCount:0,totalBlanks:0,placed:{}};
+// ====== ESTADO ======
+let state = {index:0, score:0, attempts:0, correctCount:0, totalBlanks:0, placed:{}};
 
-const qs=(s,e=document)=>e.querySelector(s);
-const qsa=(s,e=document)=>[...e.querySelectorAll(s)];
-const shuffle=a=>a.map(v=>[Math.random(),v]).sort((a,b)=>a[0]-b[0]).map(x=>x[1]);
+// ====== UTILS ======
+const qs = (sel, el=document)=>el.querySelector(sel);
+const qsa = (sel, el=document)=>[...el.querySelectorAll(sel)];
+const shuffle = arr=>arr.map(v=>[Math.random(),v]).sort((a,b)=>a[0]-b[0]).map(x=>x[1]);
+function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify({index:state.index, score:state.score})); }
+function load(){ const raw=localStorage.getItem(STORAGE_KEY); if(!raw) return; try{ const d=JSON.parse(raw); if(typeof d.index==='number') state.index=Math.min(Math.max(0,d.index), QUESTIONS.length-1); if(typeof d.score==='number') state.score=d.score; }catch{} }
 
-function save(){ localStorage.setItem("dragfill_progress_v1", JSON.stringify({index:state.index, score:state.score})); }
-function load(){ const r=localStorage.getItem("dragfill_progress_v1"); if(!r) return; try{ const d=JSON.parse(r); if(typeof d.index==='number') state.index=Math.min(Math.max(0,d.index),QUESTIONS.length-1); if(typeof d.score==='number') state.score=d.score; }catch{} }
+// ====== PARSE ======
+function parseQuestion(text){
+  const parts=[]; const answers=[];
+  let i=0;
+  while(i<text.length){
+    const s=text.indexOf("[[",i); if(s===-1){parts.push(text.slice(i)); break;}
+    const e=text.indexOf("]]",s+2); if(e===-1){parts.push(text.slice(i)); break;}
+    if(s>i) parts.push(text.slice(i,s));
+    const ans=text.slice(s+2,e).trim(); answers.push(ans); parts.push({answer:ans}); i=e+2;
+  }
+  return {parts, answers};
+}
 
-function parseQuestion(text){ const parts=[],answers=[]; let i=0; while(i<text.length){ const s=text.indexOf("[[",i); if(s===-1){ parts.push(text.slice(i)); break; } const e=text.indexOf("]]",s+2); if(e===-1){ parts.push(text.slice(i)); break; } if(s>i) parts.push(text.slice(i,s)); const ans=text.slice(s+2,e).trim(); answers.push(ans); parts.push({answer:ans}); i=e+2; } return {parts,answers}; }
-
-const promptEl = qs('#prompt');
-const poolEl = qs('#pool');
-const feedbackEl = qs('#feedback');
-const progressPill = qs('#progressPill');
-const scoreStat = qs('#scoreStat');
-const accStat = qs('#accStat');
+// ====== RENDER ======
+const promptEl = qs('#prompt'); const poolEl = qs('#pool'); const feedbackEl = qs('#feedback');
+const progressPill = qs('#progressPill'); const scoreStat = qs('#scoreStat'); const accStat = qs('#accStat');
 
 function render(){
-  const q=QUESTIONS[state.index];
-  const {parts,answers}=parseQuestion(q.text);
-  state.placed={}; feedbackEl.textContent="";
-  promptEl.innerHTML="";
-  const blanks=[];
-  parts.forEach((p,idx)=>{ if(typeof p==='string'){ promptEl.append(document.createTextNode(p)); } else { const span=document.createElement('span'); span.className='blank'; span.dataset.answer=p.answer; span.dataset.id=`b${idx}`; span.tabIndex=0; span.setAttribute('role','textbox'); span.setAttribute('aria-label','Lacuna, solte uma palavra aqui'); span.addEventListener('dragover',e=>{e.preventDefault();}); span.addEventListener('drop',onDrop); span.addEventListener('click',()=>{ const grabbed=qsa('.token[aria-grabbed="true"]', poolEl)[0]; if(grabbed){ placeToken(span,grabbed); grabbed.setAttribute('aria-grabbed','false'); } }); blanks.push(span); promptEl.append(span); }});
-  state.totalBlanks=answers.length;
-  poolEl.innerHTML="";
-  const tokens=shuffle([...answers,...q.distractors]);
-  tokens.forEach(word=>{ const tk=document.createElement('button'); tk.className='token'; tk.draggable=true; tk.textContent=word; tk.type='button'; tk.setAttribute('aria-grabbed','false'); tk.addEventListener('dragstart',e=>{e.dataTransfer.setData('text/plain',word); tk.setAttribute('aria-grabbed','true');}); tk.addEventListener('dragend',()=>tk.setAttribute('aria-grabbed','false')); tk.addEventListener('click',()=>{ const is=tk.getAttribute('aria-grabbed')==='true'; qsa('.token', poolEl).forEach(x=>x.setAttribute('aria-grabbed','false')); tk.setAttribute('aria-grabbed',is?'false':'true'); }); poolEl.append(tk); });
+  const q = QUESTIONS[state.index]; const {parts, answers} = parseQuestion(q.text);
+  state.placed = {}; feedbackEl.textContent = "";
+  promptEl.innerHTML = ""; const blanks=[];
+  parts.forEach((p,idx)=>{
+    if(typeof p==='string'){promptEl.append(document.createTextNode(p));} 
+    else{
+      const span=document.createElement('span'); span.className='blank'; span.dataset.answer=p.answer; span.dataset.id=`b${idx}`;
+      span.tabIndex=0; span.setAttribute('role','textbox'); span.setAttribute('aria-label','Lacuna, solte uma palavra aqui');
+      span.addEventListener('dragover',e=>{e.preventDefault();}); span.addEventListener('drop',onDrop);
+      span.addEventListener('click',()=>{ const grabbed=qsa('.token[aria-grabbed="true"]',poolEl)[0]; if(grabbed){placeToken(span,grabbed); grabbed.setAttribute('aria-grabbed','false');}});
+      blanks.push(span); promptEl.append(span);
+    }
+  });
+  state.totalBlanks = answers.length;
+  poolEl.innerHTML = "";
+  const tokens=[...answers,...q.distractors]; shuffle(tokens).forEach(word=>{
+    const tk=document.createElement('button'); tk.className='token'; tk.draggable=true; tk.textContent=word; tk.type='button'; tk.setAttribute('aria-grabbed','false');
+    tk.addEventListener('dragstart',e=>{e.dataTransfer.setData('text/plain',word); tk.setAttribute('aria-grabbed','true');});
+    tk.addEventListener('dragend',()=>tk.setAttribute('aria-grabbed','false'));
+    tk.addEventListener('click',()=>{const is=tk.getAttribute('aria-grabbed')==='true'; qsa('.token',poolEl).forEach(x=>x.setAttribute('aria-grabbed','false')); tk.setAttribute('aria-grabbed',is?'false':'true');});
+    poolEl.append(tk);
+  });
   progressPill.textContent=`Pergunta ${state.index+1}/${QUESTIONS.length}`;
   scoreStat.textContent=`Pontuação: ${state.score}`;
   accStat.textContent=`Acertos: 0/${state.totalBlanks}`;
 }
 
-function placeToken(blankEl,tokenEl){ if(blankEl.firstChild) poolEl.append(blankEl.firstChild); blankEl.classList.add('filled'); blankEl.classList.remove('correct','wrong'); blankEl.textContent=''; const clone=tokenEl.cloneNode(true); clone.classList.remove('token'); clone.style.cssText='all:unset;font-weight:700;letter-spacing:.2px'; clone.textContent=tokenEl.textContent; blankEl.append(clone); state.placed[blankEl.dataset.id]=tokenEl.textContent; updateAccuracy(); }
+function placeToken(blankEl,tokenEl){
+  if(blankEl.firstChild){ poolEl.append(blankEl.firstChild); }
+  blankEl.classList.add('filled'); blankEl.classList.remove('correct','wrong'); blankEl.textContent='';
+  const clone=tokenEl.cloneNode(true); clone.classList.remove('token'); clone.style.cssText='all:unset;font-weight:700;letter-spacing:.2px;';
+  clone.textContent=tokenEl.textContent; blankEl.append(clone); state.placed[blankEl.dataset.id]=tokenEl.textContent;
+  updateAccuracy();
+}
 
-function onDrop(e){ e.preventDefault(); const word=e.dataTransfer.getData('text/plain'); const token=qsa('.token', poolEl).find(t=>t.textContent===word); if(token){ placeToken(e.currentTarget,token); } }
+function onDrop(e){ e.preventDefault(); const word=e.dataTransfer.getData('text/plain'); const token=qsa('.token',poolEl).find(t=>t.textContent===word); if(token){placeToken(e.currentTarget,token);} }
+function updateAccuracy(){ const blanks=qsa('.blank',promptEl); let filled=0,correct=0; blanks.forEach(b=>{const val=state.placed[b.dataset.id]; if(val){filled++; if(val===b.dataset.answer) correct++;}}); state.correctCount=correct; accStat.textContent=`Acertos: ${correct}/${state.totalBlanks}`}
 
-function updateAccuracy(){ const blanks=qsa('.blank',promptEl); let filled=0, correct=0; blanks.forEach(b=>{ const val=state.placed[b.dataset.id]; if(val){ filled++; if(val===b.dataset.answer) correct++; } }); state.correctCount=correct; accStat.textContent=`Acertos: ${correct}/${state.totalBlanks}`; }
+// ====== ENVIO PARA GOOGLE SHEETS ======
+function enviarResultados(nomeAluno){
+  const url="https://script.google.com/macros/s/AKfycbw7H4MsA8YSYxzmG9DWxKLkmaPz65vMhBd8jd3OleShIOd00Uo6WdejyDeoeKfY7R3C/exec"; // substitua com seu Apps Script
+  const payload={nome:nomeAluno,respostas:Object.values(state.placed),pontuacao:state.score};
+  fetch(url,{method:"POST",body:JSON.stringify(payload),headers:{"Content-Type":"application/json"}})
+  .then(r=>r.json()).then(d=>console.log("Resposta enviada:",d))
+  .catch(e=>console.error("Erro ao enviar:",e));
+}
 
-qs('#checkBtn').addEventListener('click',()=>{ const blanks=qsa('.blank',promptEl); let allCorrect=true; blanks.forEach(b=>{ const val=state.placed[b.dataset.id]; if(!val){ b.classList.remove('correct','wrong'); allCorrect=false; return; } const ok=val===b.dataset.answer; b.classList.toggle('correct',ok); b.classList.toggle('wrong',!ok); if(!ok) allCorrect=false; }); state.attempts++; if(allCorrect){ feedbackEl.textContent='Perfeito! ✅'; feedbackEl.className='feedback success'; state.score+=POINTS_PER_QUESTION; scoreStat.textContent=`Pontuação: ${state.score}`; save(); } else { feedbackEl.textContent='Ainda tem coisa pra ajustar. Tente de novo!'; feedbackEl.className='feedback error'; } });
+// ====== AÇÕES ======
+qs('#checkBtn').addEventListener('click',()=>{
+  const blanks=qsa('.blank',promptEl); let allCorrect=true;
+  blanks.forEach(b=>{const val=state.placed[b.dataset.id]; if(!val){b.classList.remove('correct','wrong'); allCorrect=false; return;} const ok=val===b.dataset.answer; b.classList.toggle('correct',ok); b.classList.toggle('wrong',!ok); if(!ok) allCorrect=false;});
+  state.attempts++;
+  if(allCorrect){
+    feedbackEl.textContent='Perfeito! \u2705'; feedbackEl.className='feedback success';
+    if(!localStorage.getItem(`q_${state.index}_done`)){state.score+=POINTS_PER_QUESTION; localStorage.setItem(`q_${state.index}_done`,'1');}
+    scoreStat.textContent=`Pontuação: ${state.score}`; save();
+    const nomeAluno=prompt("Digite seu nome para salvar no ranking:");
+    if(nomeAluno) enviarResultados(nomeAluno);
+  } else{
+    feedbackEl.textContent='Ainda tem coisa pra ajustar. Tente de novo!'; feedbackEl.className='feedback error';
+  }
+});
 
-qs('#hintBtn').addEventListener('click',()=>{ const blanks=qsa('.blank',promptEl); let gaveHint=false; blanks.forEach(b=>{ const val=state.placed[b.dataset.id]; const correct=b.dataset.answer; if(val && val!==correct){ b.classList.add('wrong'); const primeira=correct[0]; const tamanho=correct.length; const tipo=Math.floor(Math.random()*3); let dica=""; if(tipo===0){ dica=`a palavra correta começa com "${primeira}"`; } else if(tipo===1){ dica=`a palavra correta tem ${tamanho} letras`; } else { dica=`a palavra correta começa com "${primeira}" e tem ${tamanho} letras`; } feedbackEl.textContent=`Dica: ${dica}. (-0.1 ponto)`; gaveHint=true; } }); if(!gaveHint){ feedbackEl.textContent='Nenhuma dica por enquanto; preencha algo primeiro.'; } feedbackEl.className='feedback hint'; if(gaveHint){ state.score-=0.1; if(state.score<0) state.score=0; scoreStat.textContent=`Pontuação: ${state.score}`; save(); } });
+qs('#hintBtn').addEventListener('click',()=>{
+  const blanks=qsa('.blank',promptEl); let gaveHint=false;
+  blanks.forEach(b=>{const val=state.placed[b.dataset.id]; const correct=b.dataset.answer; if(val && val!==correct){b.classList.add('wrong'); const primeira=correct[0]; const tamanho=correct.length; const tipo=Math.floor(Math.random()*3); let dica=""; if(tipo===0)dica=`a palavra correta começa com "${primeira}"`; else if(tipo===1)dica=`a palavra correta tem ${tamanho} letras`; else dica=`a palavra correta começa com "${primeira}" e tem ${tamanho} letras`; feedbackEl.textContent=`Dica: ${dica}. (-0.1 ponto)`; gaveHint=true;}});
+  if(!gaveHint){feedbackEl.textContent='Nenhuma dica por enquanto; preencha algo primeiro.';}
+  feedbackEl.className='feedback hint';
+  if(gaveHint){state.score-=0.1; if(state.score<0) state.score=0; scoreStat.textContent=`Pontuação: ${state.score}`; save();}
+});
 
-qs('#resetBtn').addEventListener('click',()=>{ render(); });
-qs('#shuffleBtn').addEventListener('click',()=>{ const words=qsa('.token',poolEl).map(t=>t.textContent); poolEl.innerHTML=''; shuffle(words).forEach(w=>{ const tk=document.createElement('button'); tk.className='token'; tk.draggable=true; tk.textContent=w; tk.type='button'; tk.setAttribute('aria-grabbed','false'); tk.addEventListener('dragstart',e=>{e.dataTransfer.setData('text/plain',w); tk.setAttribute('aria-grabbed','true');}); tk.addEventListener('dragend',()=>tk.setAttribute('aria-grabbed','false')); tk.addEventListener('click',()=>{ const is=tk.getAttribute('aria-grabbed')==='true'; qsa('.token',poolEl).forEach(x=>x.setAttribute('aria-grabbed','false')); tk.setAttribute('aria-grabbed',is?'false':'true'); }); poolEl.append(tk); }); });
+qs('#resetBtn').addEventListener('click',()=>{render();});
+qs('#shuffleBtn').addEventListener('click',()=>{const words=qsa('.token',poolEl).map(t=>t.textContent); poolEl.innerHTML=''; shuffle(words).forEach(w=>{const tk=document.createElement('button'); tk.className='token'; tk.draggable=true; tk.textContent=w; tk.type='button'; tk.setAttribute('aria-grabbed','false'); tk.addEventListener('dragstart',e=>{e.dataTransfer.setData('text/plain',w); tk.setAttribute('aria-grabbed','true');}); tk.addEventListener('dragend',()=>tk.setAttribute('aria-grabbed','false')); tk.addEventListener('click',()=>{const is=tk.getAttribute('aria-grabbed')==='true'; qsa('.token',poolEl).forEach(x=>x.setAttribute('aria-grabbed','false')); tk.setAttribute('aria-grabbed',is?'false':'true');}); poolEl.append(tk);});});
+qs('#prevBtn').addEventListener('click',()=>{if(state.index>0){state.index--;save(); render();}});
+qs('#nextBtn').addEventListener('click',()=>{if(state.index<QUESTIONS.length-1){state.index++;save(); render();}});
 
-qs('#prevBtn').addEventListener('click',()=>{ if(state.index>0){ state.index--; save(); render(); } });
-qs('#nextBtn').addEventListener('click',()=>{ if(state.index<QUESTIONS.length-1){ state.index++; save(); render(); } });
-
-load(); state.score=0; render();
+// ====== INIT ======
+load(); render();
 </script>
 </body>
 </html>
