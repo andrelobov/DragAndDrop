@@ -1,213 +1,202 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
-  <meta charset="UTF-8">
-  <title>Atividade Interativa</title>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
-    .toolbar { margin-bottom: 20px; }
-    .toolbar label { margin-right: 8px; }
-    .prompt { margin-bottom: 20px; font-size: 18px; }
-    .blank { display: inline-block; min-width: 60px; border-bottom: 2px solid #000; margin: 0 4px; padding: 2px 6px; }
-    .token { padding: 6px 12px; margin: 4px; border: 1px solid #444; border-radius: 8px; background: #eee; cursor: grab; }
-    .token[aria-grabbed="true"] { background: #cfc; }
-    .feedback { margin-top: 15px; font-weight: bold; }
-    .feedback.correct { color: green; }
-    .feedback.wrong { color: red; }
-    .feedback.hint { color: orange; }
-    .controls button { margin-right: 8px; padding: 6px 12px; }
-  </style>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Atividade – Arrastar para Completar</title>
+<style>
+:root{
+  --bg:#0f172a;
+  --card:#111827;
+  --muted:#1f2937;
+  --text:#e5e7eb;
+  --text-dim:#9ca3af;
+  --primary:#22d3ee;
+  --ok:#34d399;
+  --err:#f87171;
+  --warn:#f59e0b;
+}
+*{box-sizing:border-box}
+html,body{height:100%; margin:0; font-family:system-ui,sans-serif; background:var(--bg); color:var(--text); display:flex; align-items:center; justify-content:center; padding:24px;}
+.app{width:min(980px,100%)}
+.card{background:var(--card); border:1px solid #1f2a44; border-radius:20px; padding:24px; box-shadow:0 10px 30px #0008;}
+header{display:flex; gap:12px; align-items:center; justify-content:space-between; margin-bottom:12px;}
+h1{font-size:20px; margin:0; font-weight:700;}
+.pill{font-size:12px; padding:6px 10px; border-radius:999px; border:1px solid #2b3758; background:#0a1224; color:var(--text-dim);}
+.prompt{font-size:18px; line-height:1.6; padding:16px; background:var(--card); border:1px solid #1f2a44; border-radius:14px;}
+.blank{display:inline-flex; min-width:110px; min-height:34px; padding:4px 10px; margin:0 4px; border-radius:10px; border:1px dashed #334155; background:#0b1222; align-items:center; justify-content:center; vertical-align:baseline;}
+.blank.filled{border-style:solid; border-color:#334155; background:#0e152b;}
+.blank.correct{border-color:#1f5137; background:#0c1f17; box-shadow: inset 0 0 0 9999px #00ff5a10;}
+.blank.wrong{border-color:#5b1f2a; background:#1a0c11; box-shadow: inset 0 0 0 9999px #ff003310;}
+.pool{margin-top:16px; display:flex; flex-wrap:wrap; gap:10px; padding:12px; background:var(--card); border:1px solid #1f2a44; border-radius:14px; min-height:64px;}
+.token{user-select:none; cursor:grab; padding:8px 12px; border-radius:999px; background:#0b1a2e; border:1px solid #1f2a44; color:var(--text); font-weight:600;}
+.token:active{cursor:grabbing;}
+.token[aria-grabbed="true"]{outline:2px dashed var(--primary);}
+.toolbar{margin-top:16px; display:flex; flex-wrap:wrap; gap:8px; align-items:center;}
+button{background:#0b1a2e; color:var(--text); border:1px solid #1f2a44; padding:10px 14px; border-radius:12px; cursor:pointer; font-weight:600;}
+button.primary{background:linear-gradient(90deg, #0ea5e9 0%, #06b6d4 100%); color:#001018; border:none;}
+button:disabled{opacity:.6; cursor:not-allowed;}
+.stats{margin-left:auto; display:flex; gap:10px;}
+.stat{padding:6px 10px; border-radius:10px; background:#091427; border:1px solid #1f2a44; font-size:12px;}
+.feedback{margin-top:12px; font-size:14px; color:var(--text-dim);}
+.success{color:var(--ok)}.error{color:var(--err)}.hint{color:var(--warn);}
+.nav{display:flex; gap:8px; margin-top:10px;}
+input{padding:8px 12px; border-radius:8px; border:1px solid #334155; margin-bottom:12px; width:100%;}
+</style>
 </head>
 <body>
-  <h1>Atividade Interativa</h1>
+<div class="app">
+  <div class="card">
+    <header>
+      <h1>Analise a frase e complete as lacunas:</h1>
+      <div class="pill" id="progressPill">Pergunta 1/1</div>
+    </header>
 
-  <div class="toolbar">
-    <label for="nomeAluno">Nome e Sobrenome:</label>
-    <input type="text" id="nomeAluno" placeholder="Digite seu nome completo">
+    <input type="text" id="studentName" placeholder="Nome e Sobrenome" />
+    <input type="text" id="studentId" placeholder="ID do estudante" />
 
-    <label for="idAluno" style="margin-left:12px;">ID:</label>
-    <input type="text" id="idAluno" placeholder="Digite seu ID">
+    <div id="prompt" class="prompt"></div>
+    <div id="pool" class="pool"></div>
+
+    <div class="toolbar">
+      <button class="primary" id="checkBtn">Conferir</button>
+      <button id="hintBtn">Dica</button>
+      <button id="resetBtn">Limpar</button>
+      <button id="shuffleBtn">Embaralhar</button>
+      <div class="stats">
+        <div class="stat" id="scoreStat">Pontuação: 0</div>
+        <div class="stat" id="accStat">Acertos: 0/0</div>
+      </div>
+    </div>
+
+    <div class="nav">
+      <button id="prevBtn">◀️ Anterior</button>
+      <button id="nextBtn">Próxima ▶️</button>
+    </div>
+
+    <div id="feedback" class="feedback"></div>
   </div>
+</div>
 
-  <div id="stats">
-    <span id="score">Pontuação: 0</span> | 
-    <span id="progress">Questão 1 de 4</span>
-  </div>
+<script>
+// ==== CONFIGURAÇÃO ====
+const QUESTIONS = [
+  {text:"Ao emitir uma mensagem para expressar seu [[propósito]], o emissor tem várias opções de [[escolha]], e ao mesmo tempo várias [[decisões]] a tomar.", distractors:["elemento","assunto","informação"]},
+];
+const POINTS_PER_QUESTION=1;
+const SCRIPT_URL="https://script.google.com/macros/s/AKfycbw7H4MsA8YSYxzmG9DWxKLkmaPz65vMhBd8jd3OleShIOd00Uo6WdejyDeoeKfY7R3C/exec";
 
-  <div id="prompt" class="prompt"></div>
-  <div id="pool"></div>
-  <div class="controls">
-    <button id="checkBtn">Conferir</button>
-    <button id="hintBtn">Dica</button>
-    <button id="resetBtn">Resetar</button>
-    <button id="shuffleBtn">Embaralhar</button>
-    <button id="prevBtn">Anterior</button>
-    <button id="nextBtn">Próxima</button>
-    <button id="sendBtn">Enviar</button>
-  </div>
-  <div id="feedback" class="feedback"></div>
+// ==== ESTADO ====
+let state={index:0,score:0,totalBlanks:0,placed:{}};
 
-  <script>
-    const SCRIPT_URL = "SUA_URL_DO_SCRIPT_AQUI"; // <-- Troque pela URL do Apps Script
+// ==== UTILS ====
+const qs=(s,e=document)=>e.querySelector(s);
+const qsa=(s,e=document)=>[...e.querySelectorAll(s)];
+const shuffle=a=>a.map(v=>[Math.random(),v]).sort((a,b)=>a[0]-b[0]).map(x=>x[1]);
 
-    const QUESTIONS = [
-      { text: "O consumidor é influenciado por fatores ____ e ____.", answers: ["culturais","sociais"], tokens: ["culturais","sociais","econômicos","pessoais"], points: 2 },
-      { text: "A motivação está ligada às ____ do indivíduo.", answers: ["necessidades"], tokens: ["necessidades","emoções","valores"], points: 1 },
-      { text: "O processo de decisão de compra inclui reconhecimento do ____.", answers: ["problema"], tokens: ["problema","produto","mercado"], points: 1 },
-      { text: "A percepção é o processo de selecionar, organizar e interpretar ____.", answers: ["informações"], tokens: ["informações","produtos","necessidades"], points: 1 }
-    ];
+function parseQuestion(text){
+  const parts=[]; const answers=[];
+  let i=0;
+  while(i<text.length){
+    const s=text.indexOf("[[",i);
+    if(s===-1){ parts.push(text.slice(i)); break;}
+    const e=text.indexOf("]]",s+2);
+    if(e===-1){ parts.push(text.slice(i)); break;}
+    if(s>i) parts.push(text.slice(i,s));
+    const ans=text.slice(s+2,e).trim(); answers.push(ans);
+    parts.push({answer:ans}); i=e+2;
+  }
+  return {parts,answers};
+}
 
-    let state = { index:0, score:0, placed:{}, completed:[] };
+// ==== RENDER ====
+const promptEl=qs('#prompt');
+const poolEl=qs('#pool');
+const feedbackEl=qs('#feedback');
+const progressPill=qs('#progressPill');
+const scoreStat=qs('#scoreStat');
+const accStat=qs('#accStat');
+const nameInput=qs('#studentName');
+const idInput=qs('#studentId');
 
-    const qs = s=>document.querySelector(s);
-    const qsa = s=>Array.from(document.querySelectorAll(s));
-    const promptEl=qs('#prompt');
-    const poolEl=qs('#pool');
-    const feedbackEl=qs('#feedback');
-    const scoreStat=qs('#score');
-    const progressStat=qs('#progress');
-
-    function shuffle(arr){ return arr.map(a=>[Math.random(),a]).sort((a,b)=>a[0]-b[0]).map(a=>a[1]); }
-
-    function render(){
-      const q=QUESTIONS[state.index];
-      promptEl.innerHTML='';
-      state.placed={};
-      let i=0;
-      q.text.split('____').forEach((chunk,j,arr)=>{
-        promptEl.append(chunk);
-        if(j<arr.length-1){
-          const span=document.createElement('span');
-          span.className='blank';
-          span.dataset.id=i;
-          span.dataset.answer=q.answers[i];
-          span.textContent='_____';
-          span.addEventListener('dragover',e=>e.preventDefault());
-          span.addEventListener('drop',drop);
-          promptEl.append(span);
-          i++;
-        }
-      });
-      poolEl.innerHTML='';
-      shuffle(q.tokens).forEach(tok=>{
-        const tk=document.createElement('button');
-        tk.className='token';
-        tk.draggable=true;
-        tk.textContent=tok;
-        tk.type='button';
-        tk.setAttribute('aria-grabbed','false');
-        tk.addEventListener('dragstart',e=>{
-          e.dataTransfer.setData('text/plain',tok);
-          tk.setAttribute('aria-grabbed','true');
-        });
-        tk.addEventListener('dragend',()=>tk.setAttribute('aria-grabbed','false'));
-        tk.addEventListener('click',()=>{
-          const blanks=qsa('.blank');
-          for(const b of blanks){
-            if(!state.placed[b.dataset.id]){
-              b.textContent=tok;
-              state.placed[b.dataset.id]=tok;
-              break;
-            }
-          }
-        });
-        poolEl.append(tk);
-      });
-      feedbackEl.textContent='';
-      progressStat.textContent=`Questão ${state.index+1} de ${QUESTIONS.length}`;
-      scoreStat.textContent=`Pontuação: ${state.score}`;
+function render(){
+  const q=QUESTIONS[state.index];
+  const {parts,answers}=parseQuestion(q.text);
+  state.placed={};
+  promptEl.innerHTML="";
+  parts.forEach((p,idx)=>{
+    if(typeof p==="string") promptEl.append(document.createTextNode(p));
+    else{
+      const span=document.createElement('span');
+      span.className='blank'; span.dataset.answer=p.answer; span.dataset.id=`b${idx}`;
+      span.tabIndex=0; span.addEventListener('dragover',e=>e.preventDefault());
+      span.addEventListener('drop',onDrop);
+      span.addEventListener('click',()=>{const grabbed=qsa('.token[aria-grabbed="true"]', poolEl)[0]; if(grabbed){placeToken(span,grabbed); grabbed.setAttribute('aria-grabbed','false');}});
+      promptEl.append(span);
     }
+  });
+  state.totalBlanks=answers.length;
 
-    function drop(e){
-      e.preventDefault();
-      const word=e.dataTransfer.getData('text/plain');
-      e.target.textContent=word;
-      state.placed[e.target.dataset.id]=word;
-    }
+  // pool
+  poolEl.innerHTML="";
+  shuffle([...answers,...q.distractors]).forEach(word=>{
+    const tk=document.createElement('button'); tk.className='token'; tk.draggable=true; tk.textContent=word;
+    tk.setAttribute('aria-grabbed','false');
+    tk.addEventListener('dragstart',e=>{e.dataTransfer.setData('text/plain',word); tk.setAttribute('aria-grabbed','true');});
+    tk.addEventListener('dragend',()=>tk.setAttribute('aria-grabbed','false'));
+    tk.addEventListener('click',()=>{const is=tk.getAttribute('aria-grabbed')==='true'; qsa('.token',poolEl).forEach(x=>x.setAttribute('aria-grabbed','false')); tk.setAttribute('aria-grabbed',is?'false':'true');});
+    poolEl.append(tk);
+  });
 
-    qs('#checkBtn').addEventListener('click',()=>{
-      const q=QUESTIONS[state.index];
-      let correct=true;
-      qsa('.blank',promptEl).forEach(b=>{
-        const val=state.placed[b.dataset.id];
-        if(val===b.dataset.answer){ b.style.color='green'; }
-        else { b.style.color='red'; correct=false; }
-      });
-      if(correct){
-        if(!state.completed.includes(state.index)){
-          state.score+=q.points;
-          state.completed.push(state.index);
-        }
-        feedbackEl.textContent='Correto!';
-        feedbackEl.className='feedback correct';
-      }else{
-        feedbackEl.textContent='Ainda não está certo.';
-        feedbackEl.className='feedback wrong';
-      }
-      scoreStat.textContent=`Pontuação: ${state.score}`;
-    });
+  progressPill.textContent=`Pergunta ${state.index+1}/${QUESTIONS.length}`;
+  scoreStat.textContent=`Pontuação: ${state.score}`;
+  accStat.textContent=`Acertos: 0/${state.totalBlanks}`;
+}
 
-    qs('#hintBtn').addEventListener('click',()=>{
-      const q=QUESTIONS[state.index];
-      let gaveHint=false;
-      qsa('.blank',promptEl).forEach((b,idx)=>{
-        const val=state.placed[b.dataset.id];
-        if(!val){
-          const ans=b.dataset.answer;
-          const dica=`${ans[0]} (${ans.length} letras)`;
-          feedbackEl.textContent=`Dica: a lacuna ${idx+1} começa com "${ans[0]}" e tem ${ans.length} letras.`;
-          feedbackEl.className='feedback hint';
-          state.score-=0.1;
-          if(state.score<0) state.score=0;
-          scoreStat.textContent=`Pontuação: ${state.score}`;
-          gaveHint=true;
-          return;
-        }
-      });
-      if(!gaveHint){
-        feedbackEl.textContent='Nenhuma dica disponível agora.';
-        feedbackEl.className='feedback hint';
-      }
-    });
+function placeToken(blankEl,tokenEl){
+  if(blankEl.firstChild) poolEl.append(blankEl.firstChild);
+  blankEl.classList.add('filled'); blankEl.classList.remove('correct','wrong');
+  blankEl.textContent=''; const clone=tokenEl.cloneNode(true); clone.classList.remove('token'); clone.style.cssText='all:unset;font-weight:700'; blankEl.append(clone);
+  state.placed[blankEl.dataset.id]=tokenEl.textContent;
+  updateAccuracy();
+}
 
-    qs('#resetBtn').addEventListener('click',()=>{render();});
-    qs('#shuffleBtn').addEventListener('click',()=>{render();});
-    qs('#prevBtn').addEventListener('click',()=>{ if(state.index>0){ state.index--; render(); } });
-    qs('#nextBtn').addEventListener('click',()=>{ if(state.index<QUESTIONS.length-1){ state.index++; render(); } });
+function onDrop(e){ e.preventDefault(); const word=e.dataTransfer.getData('text/plain'); const token=qsa('.token',poolEl).find(t=>t.textContent===word); if(token) placeToken(e.currentTarget,token); }
+function updateAccuracy(){ const blanks=qsa('.blank',promptEl); let filled=0, correct=0; blanks.forEach(b=>{const val=state.placed[b.dataset.id]; if(val){filled++; if(val===b.dataset.answer) correct++;}}); state.correctCount=correct; accStat.textContent=`Acertos: ${correct}/${state.totalBlanks}`; }
 
-    // === Enviar ao Google Script ===
-    qs('#sendBtn').addEventListener('click',()=>{
-      const nomeAluno = qs('#nomeAluno').value.trim();
-      const idAluno = qs('#idAluno').value.trim();
-      if(!nomeAluno || !idAluno){
-        alert("Por favor, preencha Nome e ID antes de enviar.");
-        return;
-      }
-      const payload = {
-        nome: nomeAluno,
-        id: idAluno,
-        pontuacao: state.score,
-        acertos: state.completed.length + " de " + QUESTIONS.length
-      };
-      fetch(SCRIPT_URL,{
-        method:"POST",
-        body: JSON.stringify(payload),
-        headers: {"Content-Type":"application/json"}
-      })
-      .then(r=>r.json())
-      .then(data=>{
-        if(data.status==="ok"){
-          alert("Respostas enviadas com sucesso!");
-        }else{
-          alert("Erro: " + data.message);
-        }
-      })
-      .catch(err=>{
-        alert("Falha ao enviar: " + err.message);
-      });
-    });
+// ==== BOTÕES ====
+qs('#checkBtn').addEventListener('click',()=>{
+  const blanks=qsa('.blank',promptEl); let allCorrect=true;
+  blanks.forEach(b=>{const val=state.placed[b.dataset.id]; if(!val){b.classList.remove('correct','wrong'); allCorrect=false; return;} const ok=val===b.dataset.answer; b.classList.toggle('correct',ok); b.classList.toggle('wrong',!ok); if(!ok) allCorrect=false;});
+  if(allCorrect){ feedbackEl.textContent='Perfeito! \u2705'; feedbackEl.className='feedback success'; state.score+=POINTS_PER_QUESTION; scoreStat.textContent=`Pontuação: ${state.score}`; enviarResultado();}
+  else{feedbackEl.textContent='Ainda tem coisa pra ajustar. Tente de novo!'; feedbackEl.className='feedback error';}
+});
 
-    render();
-  </script>
+function enviarResultado(){
+  const nome=nameInput.value.trim();
+  const id=idInput.value.trim();
+  if(!nome || !id){ alert('Preencha nome e ID antes de enviar!'); return;}
+  const blanks=qsa('.blank',promptEl);
+  const respostas={};
+  blanks.forEach(b=>respostas[b.dataset.answer]=state.placed[b.dataset.id]||"");
+  const data={nome, id, respostas, score:state.score};
+  fetch(SCRIPT_URL,{
+    method:'POST',
+    body: JSON.stringify(data),
+    headers:{'Content-Type':'application/json'}
+  }).then(r=>r.ok ? feedbackEl.textContent+=' Enviado com sucesso!' : feedbackEl.textContent+=' Falha ao enviar.')
+    .catch(()=>feedbackEl.textContent+=' Falha ao enviar.');
+}
+
+qs('#hintBtn').addEventListener('click',()=>{ feedbackEl.textContent='Dica não implementada nessa versão.'; feedbackEl.className='feedback hint'; });
+qs('#resetBtn').addEventListener('click',()=>render());
+qs('#shuffleBtn').addEventListener('click',()=>{const words=qsa('.token',poolEl).map(t=>t.textContent); poolEl.innerHTML=''; shuffle(words).forEach(w=>{const tk=document.createElement('button'); tk.className='token'; tk.draggable=true; tk.textContent=w; tk.setAttribute('aria-grabbed','false'); tk.addEventListener('dragstart',e=>{e.dataTransfer.setData('text/plain',w); tk.setAttribute('aria-grabbed','true');}); tk.addEventListener('dragend',()=>tk.setAttribute('aria-grabbed','false')); tk.addEventListener('click',()=>{const is=tk.getAttribute('aria-grabbed')==='true'; qsa('.token',poolEl).forEach(x=>x.setAttribute('aria-grabbed','false')); tk.setAttribute('aria-grabbed',is?'false':'true');}); poolEl.append(tk);});});
+
+qs('#prevBtn').addEventListener('click',()=>{if(state.index>0){state.index--; render();}});
+qs('#nextBtn').addEventListener('click',()=>{if(state.index<QUESTIONS.length-1){state.index++; render();}});
+
+// ==== INIT ====
+render();
+</script>
 </body>
 </html>
