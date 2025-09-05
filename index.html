@@ -1,208 +1,213 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Atividade – Arrastar para Completar</title>
+  <meta charset="UTF-8">
+  <title>Atividade Interativa</title>
   <style>
-    :root{
-      --bg:#0f172a; --card:#111827; --muted:#1f2937;
-      --text:#e5e7eb; --text-dim:#9ca3af;
-      --primary:#22d3ee; --ok:#34d399; --err:#f87171; --warn:#f59e0b;
-    }
-    body{margin:0;font-family:system-ui;background:var(--bg);color:var(--text);
-      display:flex;justify-content:center;padding:24px}
-    .app{width:min(980px,100%)}
-    .card{background:#0b1222;border:1px solid #1f2a44;
-      border-radius:20px;padding:24px;box-shadow:0 10px 30px #0008}
-    header{display:flex;justify-content:space-between;align-items:center}
-    h1{font-size:18px;margin:0}
-    .pill{font-size:12px;padding:6px 10px;border-radius:999px;
-      background:#0a1224;color:var(--text-dim)}
-    .field{margin-bottom:12px}
-    .field label{display:block;font-size:14px;margin-bottom:4px}
-    .field input{width:100%;padding:8px;border-radius:8px;border:1px solid #334155;
-      background:#0b1222;color:var(--text)}
-    .prompt{padding:16px;background:var(--card);border-radius:14px;line-height:1.6}
-    .blank{display:inline-flex;min-width:80px;min-height:34px;
-      border:1px dashed #334155;border-radius:8px;align-items:center;justify-content:center;margin:0 4px;padding:4px 8px}
-    .blank.correct{border-color:green;background:#0c1f17}
-    .blank.wrong{border-color:red;background:#1a0c11}
-    .pool{margin-top:12px;display:flex;flex-wrap:wrap;gap:8px;
-      background:var(--card);padding:12px;border-radius:14px}
-    .token{background:#0b1a2e;border:1px solid #1f2a44;color:var(--text);
-      padding:8px 12px;border-radius:999px;cursor:grab}
-    .toolbar{margin-top:12px;display:flex;gap:8px;flex-wrap:wrap}
-    button{padding:10px 14px;border-radius:10px;border:none;cursor:pointer;font-weight:600}
-    .primary{background:var(--primary);color:#000}
-    .stats{margin-left:auto;display:flex;gap:10px}
-    .stat{background:#091427;padding:6px 10px;border-radius:8px;font-size:12px}
-    .feedback{margin-top:10px;font-size:14px}
-    .success{color:var(--ok)}.error{color:var(--err)}.hint{color:var(--warn)}
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    .toolbar { margin-bottom: 20px; }
+    .toolbar label { margin-right: 8px; }
+    .prompt { margin-bottom: 20px; font-size: 18px; }
+    .blank { display: inline-block; min-width: 60px; border-bottom: 2px solid #000; margin: 0 4px; padding: 2px 6px; }
+    .token { padding: 6px 12px; margin: 4px; border: 1px solid #444; border-radius: 8px; background: #eee; cursor: grab; }
+    .token[aria-grabbed="true"] { background: #cfc; }
+    .feedback { margin-top: 15px; font-weight: bold; }
+    .feedback.correct { color: green; }
+    .feedback.wrong { color: red; }
+    .feedback.hint { color: orange; }
+    .controls button { margin-right: 8px; padding: 6px 12px; }
   </style>
 </head>
 <body>
-  <div class="app">
-    <div class="card">
-      <header>
-        <h1>Complete as lacunas com as palavras abaixo:</h1>
-        <div class="pill" id="progressPill">Pergunta 1/4</div>
-      </header>
+  <h1>Atividade Interativa</h1>
 
-      <div class="field">
-        <label for="nome">Nome e Sobrenome:</label>
-        <input type="text" id="nome" placeholder="Digite seu nome completo">
-      </div>
-      <div class="field">
-        <label for="idAluno">ID do Estudante:</label>
-        <input type="text" id="idAluno" placeholder="Digite seu ID">
-      </div>
+  <div class="toolbar">
+    <label for="nomeAluno">Nome e Sobrenome:</label>
+    <input type="text" id="nomeAluno" placeholder="Digite seu nome completo">
 
-      <div id="prompt" class="prompt"></div>
-      <div id="pool" class="pool"></div>
-
-      <div class="toolbar">
-        <button class="primary" id="checkBtn">Conferir</button>
-        <button id="hintBtn">Dica</button>
-        <button id="resetBtn">Limpar</button>
-        <button id="shuffleBtn">Embaralhar</button>
-        <div class="stats">
-          <div class="stat" id="scoreStat">Pontuação: 0</div>
-          <div class="stat" id="accStat">Acertos: 0/0</div>
-        </div>
-      </div>
-      <div class="toolbar">
-        <button id="prevBtn">◀️ Anterior</button>
-        <button id="nextBtn">Próxima ▶️</button>
-        <button id="sendBtn">Enviar Respostas</button>
-      </div>
-
-      <div id="feedback" class="feedback"></div>
-    </div>
+    <label for="idAluno" style="margin-left:12px;">ID:</label>
+    <input type="text" id="idAluno" placeholder="Digite seu ID">
   </div>
 
-<script>
-// ===== CONFIG =====
-const QUESTIONS = [
-  { text:"Ao emitir uma mensagem para expressar seu [[propósito]], o emissor tem várias opções de [[escolha]], ... [[receptor]].", distractors:["elemento","assunto","informação"] },
-  { text:"Na Teoria da Comunicação, o [[tratamento]] da mensagem ... um [[publicitário]], ...", distractors:["comunicação","mensagem","código"] },
-  { text:"Entre as bases ... [[personalidade]], ... [[emissor]].", distractors:["tratamento","mensagem","características"] },
-  { text:"Mas outro fator ... é o [[receptor]]. ... forma [[correspondente]]!!", distractors:["importância","decisões","mensagem"] }
-];
-const POINTS_PER_QUESTION = 0.5;
-const HINT_PENALTY = 0.1;
-const SCRIPT_URL = "COLE_AQUI_A_URL_DO_SEU_SCRIPT";
+  <div id="stats">
+    <span id="score">Pontuação: 0</span> | 
+    <span id="progress">Questão 1 de 4</span>
+  </div>
 
-// ===== STATE =====
-let state={index:0,score:0,placed:{},totalBlanks:0,correctCount:0};
+  <div id="prompt" class="prompt"></div>
+  <div id="pool"></div>
+  <div class="controls">
+    <button id="checkBtn">Conferir</button>
+    <button id="hintBtn">Dica</button>
+    <button id="resetBtn">Resetar</button>
+    <button id="shuffleBtn">Embaralhar</button>
+    <button id="prevBtn">Anterior</button>
+    <button id="nextBtn">Próxima</button>
+    <button id="sendBtn">Enviar</button>
+  </div>
+  <div id="feedback" class="feedback"></div>
 
-// ===== UTILS =====
-const qs=(s,el=document)=>el.querySelector(s);
-const qsa=(s,el=document)=>[...el.querySelectorAll(s)];
-const shuffle=arr=>arr.map(v=>[Math.random(),v]).sort((a,b)=>a[0]-b[0]).map(x=>x[1]);
+  <script>
+    const SCRIPT_URL = "SUA_URL_DO_SCRIPT_AQUI"; // <-- Troque pela URL do Apps Script
 
-function parseQuestion(text){
-  const parts=[],answers=[];let i=0;
-  while(i<text.length){
-    const s=text.indexOf("[[",i); if(s==-1){parts.push(text.slice(i));break;}
-    const e=text.indexOf("]]",s); if(e==-1){parts.push(text.slice(i));break;}
-    if(s>i) parts.push(text.slice(i,s));
-    const ans=text.slice(s+2,e).trim();answers.push(ans);parts.push({answer:ans});i=e+2;
-  }
-  return{parts,answers};
-}
+    const QUESTIONS = [
+      { text: "O consumidor é influenciado por fatores ____ e ____.", answers: ["culturais","sociais"], tokens: ["culturais","sociais","econômicos","pessoais"], points: 2 },
+      { text: "A motivação está ligada às ____ do indivíduo.", answers: ["necessidades"], tokens: ["necessidades","emoções","valores"], points: 1 },
+      { text: "O processo de decisão de compra inclui reconhecimento do ____.", answers: ["problema"], tokens: ["problema","produto","mercado"], points: 1 },
+      { text: "A percepção é o processo de selecionar, organizar e interpretar ____.", answers: ["informações"], tokens: ["informações","produtos","necessidades"], points: 1 }
+    ];
 
-// ===== RENDER =====
-const promptEl=qs("#prompt"),poolEl=qs("#pool"),feedbackEl=qs("#feedback"),
-      progressPill=qs("#progressPill"),scoreStat=qs("#scoreStat"),accStat=qs("#accStat");
+    let state = { index:0, score:0, placed:{}, completed:[] };
 
-function render(){
-  const q=QUESTIONS[state.index],{parts,answers}=parseQuestion(q.text);
-  state.placed={};feedbackEl.textContent="";
-  promptEl.innerHTML="";poolEl.innerHTML="";
-  parts.forEach((p,i)=>{
-    if(typeof p==="string") promptEl.append(p);
-    else{
-      const span=document.createElement("span");
-      span.className="blank";span.dataset.answer=p.answer;span.dataset.id="b"+i;
-      span.addEventListener("dragover",e=>e.preventDefault());
-      span.addEventListener("drop",onDrop);
-      promptEl.append(span);
+    const qs = s=>document.querySelector(s);
+    const qsa = s=>Array.from(document.querySelectorAll(s));
+    const promptEl=qs('#prompt');
+    const poolEl=qs('#pool');
+    const feedbackEl=qs('#feedback');
+    const scoreStat=qs('#score');
+    const progressStat=qs('#progress');
+
+    function shuffle(arr){ return arr.map(a=>[Math.random(),a]).sort((a,b)=>a[0]-b[0]).map(a=>a[1]); }
+
+    function render(){
+      const q=QUESTIONS[state.index];
+      promptEl.innerHTML='';
+      state.placed={};
+      let i=0;
+      q.text.split('____').forEach((chunk,j,arr)=>{
+        promptEl.append(chunk);
+        if(j<arr.length-1){
+          const span=document.createElement('span');
+          span.className='blank';
+          span.dataset.id=i;
+          span.dataset.answer=q.answers[i];
+          span.textContent='_____';
+          span.addEventListener('dragover',e=>e.preventDefault());
+          span.addEventListener('drop',drop);
+          promptEl.append(span);
+          i++;
+        }
+      });
+      poolEl.innerHTML='';
+      shuffle(q.tokens).forEach(tok=>{
+        const tk=document.createElement('button');
+        tk.className='token';
+        tk.draggable=true;
+        tk.textContent=tok;
+        tk.type='button';
+        tk.setAttribute('aria-grabbed','false');
+        tk.addEventListener('dragstart',e=>{
+          e.dataTransfer.setData('text/plain',tok);
+          tk.setAttribute('aria-grabbed','true');
+        });
+        tk.addEventListener('dragend',()=>tk.setAttribute('aria-grabbed','false'));
+        tk.addEventListener('click',()=>{
+          const blanks=qsa('.blank');
+          for(const b of blanks){
+            if(!state.placed[b.dataset.id]){
+              b.textContent=tok;
+              state.placed[b.dataset.id]=tok;
+              break;
+            }
+          }
+        });
+        poolEl.append(tk);
+      });
+      feedbackEl.textContent='';
+      progressStat.textContent=`Questão ${state.index+1} de ${QUESTIONS.length}`;
+      scoreStat.textContent=`Pontuação: ${state.score}`;
     }
-  });
-  state.totalBlanks=answers.length;
-  shuffle([...answers,...q.distractors]).forEach(w=>{
-    const tk=document.createElement("button");
-    tk.className="token";tk.draggable=true;tk.textContent=w;
-    tk.addEventListener("dragstart",e=>e.dataTransfer.setData("text/plain",w));
-    poolEl.append(tk);
-  });
-  progressPill.textContent=`Pergunta ${state.index+1}/${QUESTIONS.length}`;
-  scoreStat.textContent=`Pontuação: ${state.score.toFixed(1)}`;
-  accStat.textContent=`Acertos: 0/${state.totalBlanks}`;
-}
 
-function onDrop(e){
-  e.preventDefault();
-  const word=e.dataTransfer.getData("text/plain");
-  const blank=e.currentTarget;blank.textContent=word;
-  state.placed[blank.dataset.id]=word;updateAccuracy();
-}
-
-function updateAccuracy(){
-  const blanks=qsa(".blank",promptEl);let correct=0;
-  blanks.forEach(b=>{if(state.placed[b.dataset.id]===b.dataset.answer) correct++;});
-  state.correctCount=correct;
-  accStat.textContent=`Acertos: ${correct}/${state.totalBlanks}`;
-}
-
-// ===== ACTIONS =====
-qs("#checkBtn").onclick=()=>{
-  const blanks=qsa(".blank",promptEl);let all=true;
-  blanks.forEach(b=>{
-    const val=state.placed[b.dataset.id],ok=val===b.dataset.answer;
-    b.classList.toggle("correct",ok);b.classList.toggle("wrong",!ok);
-    if(!ok) all=false;
-  });
-  if(all){feedbackEl.textContent="Perfeito!";feedbackEl.className="feedback success";state.score+=POINTS_PER_QUESTION;}
-  else{feedbackEl.textContent="Ainda não tá certo.";feedbackEl.className="feedback error";}
-  scoreStat.textContent=`Pontuação: ${state.score.toFixed(1)}`;
-};
-
-qs("#hintBtn").onclick=()=>{
-  const blanks=qsa(".blank",promptEl);let gave=false;
-  blanks.forEach(b=>{
-    const val=state.placed[b.dataset.id],correct=b.dataset.answer;
-    if(val && val!==correct){
-      const primeira=correct[0],tam=correct.length;
-      const tipo=Math.floor(Math.random()*3);
-      let dica=tipo===0?`começa com "${primeira}"`:tipo===1?`tem ${tam} letras`:`começa com "${primeira}" e tem ${tam} letras`;
-      feedbackEl.textContent=`Dica: ${dica}. (-${HINT_PENALTY} ponto)`;feedbackEl.className="feedback hint";
-      state.score=Math.max(0,state.score-HINT_PENALTY);scoreStat.textContent=`Pontuação: ${state.score.toFixed(1)}`;gave=true;
+    function drop(e){
+      e.preventDefault();
+      const word=e.dataTransfer.getData('text/plain');
+      e.target.textContent=word;
+      state.placed[e.target.dataset.id]=word;
     }
-  });
-  if(!gave){feedbackEl.textContent="Nenhuma dica disponível.";feedbackEl.className="feedback hint";}
-};
 
-qs("#resetBtn").onclick=()=>render();
-qs("#shuffleBtn").onclick=()=>render();
-qs("#prevBtn").onclick=()=>{if(state.index>0){state.index--;render();}};
-qs("#nextBtn").onclick=()=>{if(state.index<QUESTIONS.length-1){state.index++;render();}};
+    qs('#checkBtn').addEventListener('click',()=>{
+      const q=QUESTIONS[state.index];
+      let correct=true;
+      qsa('.blank',promptEl).forEach(b=>{
+        const val=state.placed[b.dataset.id];
+        if(val===b.dataset.answer){ b.style.color='green'; }
+        else { b.style.color='red'; correct=false; }
+      });
+      if(correct){
+        if(!state.completed.includes(state.index)){
+          state.score+=q.points;
+          state.completed.push(state.index);
+        }
+        feedbackEl.textContent='Correto!';
+        feedbackEl.className='feedback correct';
+      }else{
+        feedbackEl.textContent='Ainda não está certo.';
+        feedbackEl.className='feedback wrong';
+      }
+      scoreStat.textContent=`Pontuação: ${state.score}`;
+    });
 
-qs("#sendBtn").onclick=()=>{
-  const nome=qs("#nome").value.trim();
-  const id=qs("#idAluno").value.trim();
-  if(!nome||!id){alert("Preencha Nome e ID!");return;}
-  fetch(SCRIPT_URL,{
-    method:"POST",headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({nome,id,pontuacao:state.score,acertos:`${state.correctCount}/${state.totalBlanks}`})
-  }).then(r=>r.json()).then(d=>{
-    feedbackEl.textContent=d.status==="ok"?"Respostas enviadas!":"Erro: "+d.message;
-  }).catch(err=>feedbackEl.textContent="Falha ao enviar: "+err);
-};
+    qs('#hintBtn').addEventListener('click',()=>{
+      const q=QUESTIONS[state.index];
+      let gaveHint=false;
+      qsa('.blank',promptEl).forEach((b,idx)=>{
+        const val=state.placed[b.dataset.id];
+        if(!val){
+          const ans=b.dataset.answer;
+          const dica=`${ans[0]} (${ans.length} letras)`;
+          feedbackEl.textContent=`Dica: a lacuna ${idx+1} começa com "${ans[0]}" e tem ${ans.length} letras.`;
+          feedbackEl.className='feedback hint';
+          state.score-=0.1;
+          if(state.score<0) state.score=0;
+          scoreStat.textContent=`Pontuação: ${state.score}`;
+          gaveHint=true;
+          return;
+        }
+      });
+      if(!gaveHint){
+        feedbackEl.textContent='Nenhuma dica disponível agora.';
+        feedbackEl.className='feedback hint';
+      }
+    });
 
-// ===== INIT =====
-render();
-</script>
+    qs('#resetBtn').addEventListener('click',()=>{render();});
+    qs('#shuffleBtn').addEventListener('click',()=>{render();});
+    qs('#prevBtn').addEventListener('click',()=>{ if(state.index>0){ state.index--; render(); } });
+    qs('#nextBtn').addEventListener('click',()=>{ if(state.index<QUESTIONS.length-1){ state.index++; render(); } });
+
+    // === Enviar ao Google Script ===
+    qs('#sendBtn').addEventListener('click',()=>{
+      const nomeAluno = qs('#nomeAluno').value.trim();
+      const idAluno = qs('#idAluno').value.trim();
+      if(!nomeAluno || !idAluno){
+        alert("Por favor, preencha Nome e ID antes de enviar.");
+        return;
+      }
+      const payload = {
+        nome: nomeAluno,
+        id: idAluno,
+        pontuacao: state.score,
+        acertos: state.completed.length + " de " + QUESTIONS.length
+      };
+      fetch(SCRIPT_URL,{
+        method:"POST",
+        body: JSON.stringify(payload),
+        headers: {"Content-Type":"application/json"}
+      })
+      .then(r=>r.json())
+      .then(data=>{
+        if(data.status==="ok"){
+          alert("Respostas enviadas com sucesso!");
+        }else{
+          alert("Erro: " + data.message);
+        }
+      })
+      .catch(err=>{
+        alert("Falha ao enviar: " + err.message);
+      });
+    });
+
+    render();
+  </script>
 </body>
 </html>
